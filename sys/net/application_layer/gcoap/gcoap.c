@@ -19,6 +19,7 @@
  */
 
 #include <errno.h>
+#include "clist.h"
 #include "net/gcoap.h"
 #include "random.h"
 #include "thread.h"
@@ -51,19 +52,20 @@ const coap_resource_t _default_resources[] = {
 };
 
 static gcoap_listener_t _default_listener = {
-    (coap_resource_t *)&_default_resources[0],
-    sizeof(_default_resources) / sizeof(_default_resources[0]),
-    NULL
+    .resources = (coap_resource_t *)&_default_resources[0],
+    .resources_len = sizeof(_default_resources) / sizeof(_default_resources[0])
 };
 
-static gcoap_state_t _coap_state = {
-    .listeners   = &_default_listener,
-};
+static gcoap_state_t _coap_state;
 
 static kernel_pid_t _pid = KERNEL_PID_UNDEF;
 static char _msg_stack[GCOAP_STACK_SIZE];
 static sock_udp_t _sock;
 
+static inline gcoap_listener_t *_node2listener(clist_node_t *node)
+{
+    return container_of(node, gcoap_listener_t, next);
+}
 
 /* Event/Message loop for gcoap _pid thread. */
 static void *_event_loop(void *arg)
@@ -271,9 +273,18 @@ static void _find_resource(coap_pkt_t *pdu, coap_resource_t **resource_ptr,
 {
     unsigned method_flag = coap_method2flag(coap_get_code_detail(pdu));
 
-    /* Find path for CoAP msg among listener resources and execute callback. */
-    gcoap_listener_t *listener = _coap_state.listeners;
-    while (listener) {
+    gcoap_listener_t *listener;
+
+    clist_node_t *node = _coap_state.listeners.next;
+    if (! node) {
+        goto out;
+    }
+
+    /* Find path for CoAP msg among listener resources. */
+    do {
+        node = node->next;
+        listener = _node2listener(node);
+
         coap_resource_t *resource = listener->resources;
         for (size_t i = 0; i < listener->resources_len; i++) {
             if (i) {
@@ -297,8 +308,9 @@ static void _find_resource(coap_pkt_t *pdu, coap_resource_t **resource_ptr,
                 return;
             }
         }
-        listener = listener->next;
-    }
+    } while (node != _coap_state.listeners.next);
+
+out:
     /* resource not found */
     *resource_ptr = NULL;
     *listener_ptr = NULL;
@@ -582,6 +594,7 @@ kernel_pid_t gcoap_init(void)
                             THREAD_CREATE_STACKTEST, _event_loop, NULL, "coap");
 
     mutex_init(&_coap_state.lock);
+    clist_rpush(&_coap_state.listeners, &_default_listener.next);
     /* Blank lists so we know if an entry is available. */
     memset(&_coap_state.open_reqs[0], 0, sizeof(_coap_state.open_reqs));
     memset(&_coap_state.observers[0], 0, sizeof(_coap_state.observers));
@@ -594,14 +607,12 @@ kernel_pid_t gcoap_init(void)
 
 void gcoap_register_listener(gcoap_listener_t *listener)
 {
-    /* Add the listener to the end of the linked list. */
-    gcoap_listener_t *_last = _coap_state.listeners;
-    while (_last->next) {
-        _last = _last->next;
-    }
+    clist_rpush(&_coap_state.listeners, &listener->next);
+}
 
-    listener->next = NULL;
-    _last->next = listener;
+void gcoap_unregister_listener(gcoap_listener_t *listener)
+{
+    clist_remove(&_coap_state.listeners, &listener->next);
 }
 
 int gcoap_req_init(coap_pkt_t *pdu, uint8_t *buf, size_t len, unsigned code,
@@ -810,14 +821,24 @@ int gcoap_get_resource_list(void *buf, size_t maxlen, uint8_t cf)
     (void)cf;
 #endif
 
+    gcoap_listener_t *listener;
+
+    clist_node_t *node = _coap_state.listeners.next;
+    if (! node) {
+        return 0;
+    }
+
     /* skip the first listener, gcoap itself (we skip /.well-known/core) */
-    gcoap_listener_t *listener = _coap_state.listeners->next;
+    node = node->next;
 
     char *out = (char *)buf;
     size_t pos = 0;
 
     /* write payload */
-    while (listener) {
+    do {
+        node = node->next;
+        listener = _node2listener(node);
+
         coap_resource_t *resource = listener->resources;
 
         for (unsigned i = 0; i < listener->resources_len; i++) {
@@ -841,9 +862,7 @@ int gcoap_get_resource_list(void *buf, size_t maxlen, uint8_t cf)
             }
             ++resource;
         }
-
-        listener = listener->next;
-    }
+    } while (node != _coap_state.listeners.next);
 
     return (int)pos;
 }

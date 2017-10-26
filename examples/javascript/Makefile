@@ -35,6 +35,7 @@ USEMODULE += gnrc_ipv6_router_default
 # Additional networking modules that can be dropped if not needed
 USEMODULE += gnrc_icmpv6_echo
 USEMODULE += gcoap
+USEMODULE += sock_util
 
 CFLAGS += -DGCOAP_PDU_BUF_SIZE=1280 -DGNRC_PKTBUF_SIZE=2048
 

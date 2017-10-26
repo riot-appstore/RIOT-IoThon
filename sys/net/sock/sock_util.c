@@ -117,15 +117,16 @@ int sock_urlsplit(const char *url, char *hostport, char *urlpath)
         return -EINVAL;
     }
 
-    memcpy(hostport, hoststart, pathstart - hoststart);
+    unsigned hostportlen = pathstart - hoststart;
+    memcpy(hostport, hoststart, hostportlen);
+    hostport[hostportlen] = '\0';
 
-    size_t pathlen = strlen(pathstart);
+    unsigned pathlen = strlen(pathstart);
     if (pathlen) {
         memcpy(urlpath, pathstart, pathlen);
     }
-    else {
-        *urlpath = '\0';
-    }
+    urlpath[pathlen] = '\0';
+
     return 0;
 }
 

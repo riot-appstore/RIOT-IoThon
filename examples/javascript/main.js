@@ -12,7 +12,10 @@ var process_1 = new function() {
     
     var self =  this;
     
+    print("start1");
+
     this.start = function () {
+	print("start2");
         var handler;
         var callback = function () {
             print("light on");

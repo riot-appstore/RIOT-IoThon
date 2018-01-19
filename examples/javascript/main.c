@@ -31,6 +31,7 @@
 /* include headers generated from *.js */
 #include "lib.js.h"
 #include "local.js.h"
+#include "main.js.h"
 
 static event_queue_t event_queue;
 
@@ -42,12 +43,12 @@ static msg_t _main_msg_queue[MAIN_QUEUE_SIZE];
 /* import "ifconfig" shell command, used for printing addresses */
 extern int _netif_config(int argc, char **argv);
 
-void js_start(event_t *unused)
+void js_start(void/*event_t *unused*/)
 {
-    (void)unused;
+    //(void)unused;
 
-    size_t script_len = strlen(script);
-    if (script_len) {
+    //size_t script_len = strlen(script);
+    if (1) {
         puts("Initializing jerryscript engine...");
         js_init();
 
@@ -58,18 +59,20 @@ void js_start(event_t *unused)
         js_run(local_js, local_js_len);
 
         puts("Executing script...");
-        js_run((jerry_char_t*)script, script_len);
+        //js_run((jerry_char_t*)script, script_len);
+	js_run(main_js, main_js_len);
     }
     else {
         puts("Emtpy script, not executing.");
     }
 }
 
-static event_t js_start_event = { .handler=js_start };
+//static event_t js_start_event = { .handler=js_start };
 
+//
 void js_restart(void)
 {
-    js_shutdown(&js_start_event);
+//    js_shutdown(&js_start_event);
 }
 
 int main(void)
@@ -95,8 +98,12 @@ int main(void)
     event_queue_init(&event_queue);
     js_event_queue = &event_queue;
 
+    puts("Starting js script (hopefully)");
+    js_start();
+
     puts("Entering event loop...");
     event_loop(&event_queue);
+
 
     return 0;
 }

@@ -89,7 +89,7 @@ int main(void)
     /* register to LWM2M server */
     puts("initializing coap, registering at lwm2m server");
     lwm2m_init();
-    lwm2m_register();
+    /* lwm2m_register(); */
 
     puts("setting up event queue");
     event_queue_init(&event_queue);

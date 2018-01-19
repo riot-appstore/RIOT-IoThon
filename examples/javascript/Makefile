@@ -40,6 +40,12 @@ USEMODULE += sock_util
 
 CFLAGS += -DGCOAP_PDU_BUF_SIZE=128 -DGNRC_PKTBUF_SIZE=2048
 
+# Set a custom channel if needed
+# Handle IEEE 802.15.4 2.4 GHz radio
+DEFAULT_CHANNEL ?= 20
+CFLAGS += -DIEEE802154_DEFAULT_CHANNEL=$(DEFAULT_CHANNEL)
+
+
 include $(CURDIR)/../../Makefile.include
 
 JS_PATH := $(BINDIR)/js/$(MODULE)

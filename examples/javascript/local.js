@@ -14,14 +14,8 @@ saul.get_by_name = function (name) {
         case "button":
             res = saul._find_name("Button(SW0)");
             break;
-        case "buzzer":
-            res = saul._find_name("PWM(PA18)");
-            break;
         case "brightness":
-            res = saul._find_name("ADC0_1(PA06)");
-            break;
-        case "sound":
-            res = saul._find_name("ADC0_2(PA07)");
+            res = saul._find_name("tcs37727");
             break;
     }
     saul.set_methods(res);

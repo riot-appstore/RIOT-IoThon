@@ -5,22 +5,37 @@
 var process_1 = new function() {
     
     this.button = saul.get_by_name("button");
-    
+    this.led = saul.get_by_name("led");
+    this.temp_sensor = saul.get_by_name("temp_sensor");
+
     var self =  this;
+    buttonState = true;
     
     this.start = function () {
-        var handler;
+        //var handler;
+
+	//Start producer
+	this.producer();
+    };
+   
+
+    this.producer = function() {
+
         var callback = function () {
             print("button_pressed");
+            temp_value = self.temp_sensor.get_value();
+	    print(temp_value);
             return true;
         }
+
         print("Waiting...");
         self.button.on_threshold(0, callback, saul.op.EQ);
-    };
-    
-    this.activity6 = function () {
+    }
+
+    this.consumer = function () {
+
         coap.request("http://example.runmyprocess.com/object/42/alarm", "PUT", "ON");
-        self.await7();
+        //self.await7();
     };
 }
 

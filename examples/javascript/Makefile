@@ -38,7 +38,7 @@ USEMODULE += gnrc_icmpv6_echo
 USEMODULE += gcoap
 USEMODULE += sock_util
 
-CFLAGS += -DGCOAP_PDU_BUF_SIZE=128 -DGNRC_PKTBUF_SIZE=2048
+CFLAGS += -DGCOAP_PDU_BUF_SIZE=128 -DGNRC_PKTBUF_SIZE=1024
 
 # Set a custom channel if needed
 # Handle IEEE 802.15.4 2.4 GHz radio

@@ -10,6 +10,7 @@ var process_1 = new function() {
 
     var self =  this;
     buttonState = true;
+    temp_value = 0;
     
     this.start = function () {
         //var handler;
@@ -19,12 +20,19 @@ var process_1 = new function() {
     };
    
 
+    this.consumer = function () {
+
+        coap.request("coap://[fd00:dead:beef::1]/coap", coap.method.POST, temp_value);
+        //self.await7();
+    };
+
     this.producer = function() {
 
         var callback = function () {
             print("button_pressed");
             temp_value = self.temp_sensor.get_value();
 	    print(temp_value);
+	    this.consumer();
             return true;
         }
 
@@ -32,11 +40,6 @@ var process_1 = new function() {
         self.button.on_threshold(0, callback, saul.op.EQ);
     }
 
-    this.consumer = function () {
-
-        coap.request("http://example.runmyprocess.com/object/42/alarm", "PUT", "ON");
-        //self.await7();
-    };
 }
 
 process_1.start();

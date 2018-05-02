@@ -33,11 +33,13 @@ static void _resp_handler(unsigned req_state, coap_pkt_t* pdu,
                           sock_udp_ep_t *remote);
 static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 static ssize_t _riot_board_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
+static ssize_t _data_put_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *ctx);
 
 /* CoAP resources */
 static const coap_resource_t _resources[] = {
     { "/cli/stats", COAP_GET | COAP_PUT, _stats_handler, NULL },
-    { "/riot/board", COAP_GET, _riot_board_handler, NULL },
+    { "/riot/board", COAP_GET, _riot_board_handler, NULL },  
+    { "/click", COAP_PUT, _data_put_handler, NULL },
 };
 
 static gcoap_listener_t _listener = {
@@ -134,10 +136,27 @@ static ssize_t _stats_handler(coap_pkt_t* pdu, uint8_t *buf, size_t len, void *c
 static ssize_t _riot_board_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, void *ctx)
 {
     (void)ctx;
+    puts("/riot/board API endpoint accessed");
     gcoap_resp_init(pdu, buf, len, COAP_CODE_CONTENT);
     /* write the RIOT board name in the response buffer */
     memcpy(pdu->payload, RIOT_BOARD, strlen(RIOT_BOARD));
     return gcoap_finish(pdu, strlen(RIOT_BOARD), COAP_FORMAT_TEXT);
+}
+
+static ssize_t _data_put_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, void *ctx)
+{
+    (void)ctx;
+    puts("/click API endpoint accessed.");
+    if (pdu->payload_len <= 5) {
+        char payload[6] = { 0 };
+        memcpy(payload, (char *)pdu->payload, pdu->payload_len);
+        puts("Data received.");
+        printf("Data: %s \n", payload);
+        return gcoap_response(pdu, buf, len, COAP_CODE_CHANGED);
+    }
+    else {
+        return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
+    }
 }
 
 static size_t _send(uint8_t *buf, size_t len, char *addr_str, char *port_str)

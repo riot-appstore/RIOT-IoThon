@@ -1,5 +1,7 @@
 global_f = null
+
 var producer_app = new function() {
+
     this.button = saul.get_by_name("button");
     this.led = saul.get_by_name("led");
     this.temp_sensor = saul.get_by_name("temp_sensor");
@@ -89,7 +91,7 @@ var main_app = new function() {
 var publisher_app = new function() {
     var self = this;
     this.start = function () {
-        cb_data = self.publish_data;
+        cb_data = self.publish_data(200);
     };
 
     this.publish_data = function (value) {
@@ -97,8 +99,6 @@ var publisher_app = new function() {
         // PUT 3
         payload = value.toString();
         retval = coap.request("coap://[2001:db8::7b65:3b4c:f3bb:eea2]:5683/click", coap.method.PUT, payload);
-//        coap.request("coap://[fe80::7b76:4044:da06:8aba]/riot/board", 3, payload);
-//        retval = coap.request("coap://[2001:db8::7b65:3b4c:f3bb:eea2]:5683/riot/board", coap.method.GET, "276896");
 	print("data received: " + retval);
         return true;
     }

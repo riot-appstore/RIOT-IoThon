@@ -55,10 +55,8 @@ var publisher_app = new function() {
         print("publish: event CB: " + value);
         // PUT 3
         payload = value.toString();
-        coap.request("coap://[2001:470:749d:2:7b76:4044:da06:8aba]/click", coap.method.PUT, payload);
-//        coap.request("coap://[fe80::7b76:4044:da06:8aba]/riot/board", 3, payload);
-//        retval = coap.request("coap://[fe80::7b76:4044:da06:8aba]:5683/riot/board", coap.method.GET, "276896");
-//	print("data received: " + retval);
+        retval = coap.request("coap://[2001:db8::7b65:3b4c:f3bb:eea2]:5683/click", coap.method.PUT, payload);
+	print("data received: " + retval);
         return true;
     }
 }

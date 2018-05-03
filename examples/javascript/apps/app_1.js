@@ -1,5 +1,7 @@
 global_f = null
+
 var producer_app = new function() {
+
     this.button = saul.get_by_name("button");
     this.led = saul.get_by_name("led");
     this.temp_sensor = saul.get_by_name("temp_sensor");

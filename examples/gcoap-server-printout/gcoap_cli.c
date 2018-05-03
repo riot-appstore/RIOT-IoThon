@@ -147,14 +147,16 @@ static ssize_t _data_put_handler(coap_pkt_t *pdu, uint8_t *buf, size_t len, void
 {
     (void)ctx;
     puts("/click API endpoint accessed.");
-    if (pdu->payload_len <= 5) {
-        char payload[6] = { 0 };
+    printf("Payload length is: %d\n", pdu->payload_len);
+    if (pdu->payload_len <= 6) {
+        char payload[7] = { 0 };
         memcpy(payload, (char *)pdu->payload, pdu->payload_len);
         puts("Data received.");
         printf("Data: %s \n", payload);
         return gcoap_response(pdu, buf, len, COAP_CODE_CHANGED);
     }
     else {
+	puts("data too long");
         return gcoap_response(pdu, buf, len, COAP_CODE_BAD_REQUEST);
     }
 }
